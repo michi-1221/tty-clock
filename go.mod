@@ -1,4 +1,4 @@
-module github.com/michi-1221/tui-clock
+module github.com/michi-1221/tty-clock
 
 go 1.26.1
 

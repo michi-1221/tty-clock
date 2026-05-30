@@ -4,7 +4,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/michi-1221/tui-clock/internal/clock"
+	"github.com/michi-1221/tty-clock/internal/clock"
 )
 
 // tickMsg carries the instant of a tick plus the generation that scheduled it.

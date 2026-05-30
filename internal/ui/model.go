@@ -9,12 +9,12 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/michi-1221/tui-clock/internal/caps"
-	"github.com/michi-1221/tui-clock/internal/clock"
-	"github.com/michi-1221/tui-clock/internal/config"
-	"github.com/michi-1221/tui-clock/internal/render"
-	"github.com/michi-1221/tui-clock/internal/render/digital"
-	"github.com/michi-1221/tui-clock/internal/theme"
+	"github.com/michi-1221/tty-clock/internal/caps"
+	"github.com/michi-1221/tty-clock/internal/clock"
+	"github.com/michi-1221/tty-clock/internal/config"
+	"github.com/michi-1221/tty-clock/internal/render"
+	"github.com/michi-1221/tty-clock/internal/render/digital"
+	"github.com/michi-1221/tty-clock/internal/theme"
 )
 
 // Model is the whole application state (one struct, one reducer).

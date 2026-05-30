@@ -11,11 +11,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 
-	"github.com/michi-1221/tui-clock/internal/caps"
-	"github.com/michi-1221/tui-clock/internal/clock"
-	"github.com/michi-1221/tui-clock/internal/config"
-	"github.com/michi-1221/tui-clock/internal/render"
-	"github.com/michi-1221/tui-clock/internal/theme"
+	"github.com/michi-1221/tty-clock/internal/caps"
+	"github.com/michi-1221/tty-clock/internal/clock"
+	"github.com/michi-1221/tty-clock/internal/config"
+	"github.com/michi-1221/tty-clock/internal/render"
+	"github.com/michi-1221/tty-clock/internal/theme"
 )
 
 var update = flag.Bool("update", false, "update golden files")

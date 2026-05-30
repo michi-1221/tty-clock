@@ -1,7 +1,7 @@
 // Package config defines the JSON configuration schema and its defaults.
 package config
 
-import "github.com/michi-1221/tui-clock/internal/theme"
+import "github.com/michi-1221/tty-clock/internal/theme"
 
 // Config is the on-disk schema. Strings (not enums) so JSON stays friendly;
 // they are parsed/validated via the clock package.

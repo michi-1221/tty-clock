@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/michi-1221/tui-clock/internal/clock"
+	"github.com/michi-1221/tty-clock/internal/clock"
 )
 
 // Validate checks enum fields, returning a helpful error that lists the

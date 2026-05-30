@@ -10,9 +10,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/michi-1221/tui-clock/internal/caps"
-	"github.com/michi-1221/tui-clock/internal/config"
-	"github.com/michi-1221/tui-clock/internal/ui"
+	"github.com/michi-1221/tty-clock/internal/caps"
+	"github.com/michi-1221/tty-clock/internal/config"
+	"github.com/michi-1221/tty-clock/internal/ui"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/michi-1221/tui-clock/internal/clock"
-	"github.com/michi-1221/tui-clock/internal/render"
+	"github.com/michi-1221/tty-clock/internal/clock"
+	"github.com/michi-1221/tty-clock/internal/render"
 )
 
 // DigitalRenderer draws HH:MM(:SS) as stacked glyph rows, with an optional

@@ -1,7 +1,7 @@
 # tui-clock — guidance for Claude
 
 A terminal clock in **Go + Bubble Tea** (digital now; analog/braille planned).
-Module: `github.com/michi-1221/tui-clock`. Go 1.26, darwin/arm64.
+Module: `github.com/michi-1221/tty-clock`. Go 1.26, darwin/arm64.
 
 ## Documentation convention (IMPORTANT)
 
