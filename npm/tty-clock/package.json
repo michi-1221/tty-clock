@@ -30,11 +30,11 @@
     "node": ">=18"
   },
   "optionalDependencies": {
-    "tty-clock-darwin-arm64": "0.0.0",
-    "tty-clock-darwin-x64": "0.0.0",
-    "tty-clock-linux-arm64": "0.0.0",
-    "tty-clock-linux-x64": "0.0.0",
-    "tty-clock-win32-arm64": "0.0.0",
-    "tty-clock-win32-x64": "0.0.0"
+    "@myaruran/tty-clock-darwin-arm64": "0.0.0",
+    "@myaruran/tty-clock-darwin-x64": "0.0.0",
+    "@myaruran/tty-clock-linux-arm64": "0.0.0",
+    "@myaruran/tty-clock-linux-x64": "0.0.0",
+    "@myaruran/tty-clock-win32-arm64": "0.0.0",
+    "@myaruran/tty-clock-win32-x64": "0.0.0"
   }
 }

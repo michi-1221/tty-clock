@@ -31,7 +31,7 @@ const outDir = join(dist, "npm");
 const mainSrc = join(root, "npm", "tty-clock");
 
 // GoReleaser GOOS/GOARCH -> Node process.platform/process.arch (so the shim's
-// `tty-clock-${process.platform}-${process.arch}` lookup matches package names).
+// `@myaruran/tty-clock-${process.platform}-${process.arch}` lookup matches names).
 const GOOS_TO_NODE = { darwin: "darwin", linux: "linux", windows: "win32" };
 const GOARCH_TO_NODE = { amd64: "x64", arm64: "arm64" };
 
@@ -65,9 +65,12 @@ for (const b of binaries) {
     continue;
   }
 
-  const pkgName = `tty-clock-${platform}-${arch}`;
+  // Flat folder name (drives the `tty-clock-*` publish glob); scoped npm name
+  // (@myaruran/…) so per-platform packages don't trip npm's spam detection.
+  const dirName = `tty-clock-${platform}-${arch}`;
+  const pkgName = `@myaruran/${dirName}`;
   const ext = platform === "win32" ? ".exe" : "";
-  const binDir = join(outDir, pkgName, "bin");
+  const binDir = join(outDir, dirName, "bin");
   mkdirSync(binDir, { recursive: true });
 
   const dest = join(binDir, `tty-clock${ext}`);
@@ -75,7 +78,7 @@ for (const b of binaries) {
   chmodSync(dest, 0o755); // npm preserves file mode in the tarball
 
   writeFileSync(
-    join(outDir, pkgName, "package.json"),
+    join(outDir, dirName, "package.json"),
     JSON.stringify(
       {
         name: pkgName,

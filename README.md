@@ -28,11 +28,11 @@ npx tty-clock            # run without installing
 npm install -g tty-clock # or install the command globally
 ```
 
-The `tty-clock` npm package is a thin launcher: the binaries ship in
-per-platform packages (`tty-clock-darwin-arm64`, `tty-clock-linux-x64`, …)
-declared as `optionalDependencies` with `os`/`cpu` pins, so npm downloads only
-the one matching your machine. Prebuilt for macOS / Linux / Windows on
-x64 / arm64.
+The `tty-clock` npm package is a thin launcher: the binaries ship in scoped
+per-platform packages (`@myaruran/tty-clock-darwin-arm64`,
+`@myaruran/tty-clock-linux-x64`, …) declared as `optionalDependencies` with
+`os`/`cpu` pins, so npm downloads only the one matching your machine. Prebuilt
+for macOS / Linux / Windows on x64 / arm64.
 
 **With the Go toolchain.** Run it without installing anything:
 
@@ -250,20 +250,22 @@ Releases are tag-driven and fully automated by
    binary. (Provenance is omitted because npm provenance requires a public
    repo; add `--provenance` + `id-token: write` back if this repo goes public.)
 
-| Target (GOOS/GOARCH) | npm platform package      |
-| -------------------- | ------------------------- |
-| darwin/arm64         | `tty-clock-darwin-arm64`  |
-| darwin/amd64         | `tty-clock-darwin-x64`    |
-| linux/arm64          | `tty-clock-linux-arm64`   |
-| linux/amd64          | `tty-clock-linux-x64`     |
-| windows/arm64        | `tty-clock-win32-arm64`   |
-| windows/amd64        | `tty-clock-win32-x64`     |
+| Target (GOOS/GOARCH) | npm platform package                |
+| -------------------- | ----------------------------------- |
+| darwin/arm64         | `@myaruran/tty-clock-darwin-arm64`  |
+| darwin/amd64         | `@myaruran/tty-clock-darwin-x64`    |
+| linux/arm64          | `@myaruran/tty-clock-linux-arm64`   |
+| linux/amd64          | `@myaruran/tty-clock-linux-x64`     |
+| windows/arm64        | `@myaruran/tty-clock-win32-arm64`   |
+| windows/amd64        | `@myaruran/tty-clock-win32-x64`     |
 
 **Prerequisite:** an npm automation token stored as the `NPM_TOKEN` repository
 secret (GitHub → Settings → Secrets and variables → Actions). `GITHUB_TOKEN` is
 provided automatically. The GOOS/GOARCH → Node `process.platform`/`process.arch`
 naming (`windows`→`win32`, `amd64`→`x64`) is what lets the launcher resolve
-`tty-clock-${process.platform}-${process.arch}` at runtime.
+`@myaruran/tty-clock-${process.platform}-${process.arch}` at runtime. The
+per-platform packages are **scoped** (`@myaruran/…`) to avoid npm's spam
+detection, which blocks bursts of similarly-named unscoped packages.
 
 ## Verification
 
@@ -306,3 +308,5 @@ terminal to confirm live updates and key handling.
   per-platform `optionalDependencies` packages staged from `dist/` by
   `scripts/stage-npm.mjs`, so `npx tty-clock` runs a prebuilt binary with no Go
   toolchain. Added `main.version` + `--version` flag (linker-stamped).
+  Per-platform packages are **scoped** (`@myaruran/tty-clock-<plat>-<arch>`) to
+  avoid npm spam detection; published without `--provenance` (private repo).

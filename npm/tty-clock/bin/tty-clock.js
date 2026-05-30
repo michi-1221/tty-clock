@@ -15,7 +15,7 @@ function resolveBinary() {
   const platform = process.platform; // 'darwin' | 'linux' | 'win32' | ...
   const arch = process.arch; // 'arm64' | 'x64' | ...
   const ext = platform === "win32" ? ".exe" : "";
-  const pkg = `tty-clock-${platform}-${arch}`;
+  const pkg = `@myaruran/tty-clock-${platform}-${arch}`;
   try {
     return require.resolve(`${pkg}/bin/tty-clock${ext}`);
   } catch {
