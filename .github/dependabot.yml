@@ -1,0 +1,24 @@
+version: 2
+updates:
+  # Go module dependencies — one grouped PR per week to cut noise.
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    groups:
+      go-modules:
+        patterns: ["*"]
+
+  # GitHub Actions versions (keeps actions current, e.g. off deprecated Node 20).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns: ["*"]
