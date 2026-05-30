@@ -31,8 +31,12 @@ func line(c *Canvas, x0, y0, x1, y1 int) {
 // downward, so the vertical term is negated.
 func ellipsePoint(cx, cy, rx, ry int, deg float64) (int, int) {
 	rad := deg * math.Pi / 180
-	x := float64(cx) + float64(rx)*math.Sin(rad)
-	y := float64(cy) - float64(ry)*math.Cos(rad)
+	// The explicit float64() around each product rounds it before the add,
+	// defeating FMA contraction (the arm64 backend fuses a*b+c, amd64 does not).
+	// Without this, iround flips at .5 boundaries and the dial renders a few
+	// dots differently per architecture (golden tests then fail off-arm64).
+	x := float64(cx) + float64(float64(rx)*math.Sin(rad))
+	y := float64(cy) - float64(float64(ry)*math.Cos(rad))
 	return iround(x), iround(y)
 }
 
