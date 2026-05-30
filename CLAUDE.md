@@ -23,7 +23,7 @@ the config format and user-visible behavior.
 go build ./... && go vet ./... && go test ./...
 go test ./internal/render/digital -update   # regenerate View golden files
 gofmt -w <files>
-go run ./cmd/tty-clock                       # needs a real TTY (won't run headless)
+go run .                                     # needs a real TTY (won't run headless)
 ```
 
 ## Invariants to preserve (don't regress)

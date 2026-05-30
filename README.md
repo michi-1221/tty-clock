@@ -15,12 +15,28 @@ look at" feel of k9s / lazygit.
 - **Phase 2 (planned):** analog braille renderer (`m` toggle), live reload
   (`r`), `seg7` font, multi-color hands.
 
-## Run
+## Install
+
+With the Go toolchain installed, run it without installing anything
+(npx-style):
 
 ```bash
-go run ./cmd/tty-clock                                   # XDG config or defaults
-go run ./cmd/tty-clock --config path/to/config.json      # explicit config
-go build -o tty-clock ./cmd/tty-clock                    # build a binary
+go run github.com/michi-1221/tty-clock@latest
+```
+
+Or install the `tty-clock` binary into `$(go env GOPATH)/bin`:
+
+```bash
+go install github.com/michi-1221/tty-clock@latest
+tty-clock
+```
+
+## Run from source
+
+```bash
+go run .                                  # XDG config or defaults
+go run . --config path/to/config.json     # explicit config
+go build -o tty-clock .                   # build a binary
 ```
 
 ## Keybindings
@@ -139,7 +155,7 @@ Default is **tokyo-night**. `t` cycles through them in this order.
 ## Architecture (project spec)
 
 ```
-cmd/tty-clock/main.go   flags · config resolve · caps detect · run (no logic)
+main.go                 flags · config resolve · caps detect · run (no logic)
 internal/
   clock/   Mode/Granularity enums + TimeSnapshot  (framework-independent domain)
   config/  schema · defaults · Load (XDG + --config) · Validate · friendly errors
@@ -169,7 +185,7 @@ go build ./... && go vet ./... && go test ./...
 go test ./internal/render/digital -update   # regenerate View golden files
 ```
 
-Interactive behavior needs a real TTY, so run `go run ./cmd/tty-clock` in your
+Interactive behavior needs a real TTY, so run `go run .` in your
 terminal to confirm live updates and key handling.
 
 ## Spec changelog
