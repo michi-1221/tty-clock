@@ -18,6 +18,8 @@
 
 # Local npm test installs
 node_modules/
+/package.json
+/package-lock.json
 
 # Editor / OS noise
 .DS_Store
