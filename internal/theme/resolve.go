@@ -37,7 +37,7 @@ func Resolve(name string, override *Palette) (Theme, error) {
 		return Theme{}, fmt.Errorf("theme %q: %w", name, err)
 	}
 
-	return Theme{
+	th := Theme{
 		Name:          name,
 		Primary:       lipgloss.Color(merged.Primary),
 		Accent:        lipgloss.Color(merged.Accent),
@@ -45,7 +45,26 @@ func Resolve(name string, override *Palette) (Theme, error) {
 		Muted:         lipgloss.Color(merged.Muted),
 		Background:    lipgloss.Color(merged.Background),
 		HasBackground: false,
-	}, nil
+	}
+
+	if g := merged.Gradient; g != nil && len(g.Stops) > 0 {
+		stops := make([]rgb, 0, len(g.Stops))
+		for _, s := range g.Stops {
+			c, err := parseHex(s)
+			if err != nil {
+				return Theme{}, fmt.Errorf("theme %q gradient: %w", name, err)
+			}
+			stops = append(stops, c)
+		}
+		dir, err := parseDirection(g.Direction)
+		if err != nil {
+			return Theme{}, fmt.Errorf("theme %q gradient: %w", name, err)
+		}
+		th.gradient = stops
+		th.GradDir = dir
+	}
+
+	return th, nil
 }
 
 func merge(base Palette, o *Palette) Palette {
@@ -66,6 +85,9 @@ func merge(base Palette, o *Palette) Palette {
 	}
 	if o.Background != "" {
 		base.Background = o.Background
+	}
+	if o.Gradient != nil {
+		base.Gradient = o.Gradient
 	}
 	return base
 }

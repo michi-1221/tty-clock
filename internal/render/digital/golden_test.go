@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 
@@ -160,4 +161,34 @@ func containsESC(s string) bool {
 		}
 	}
 	return false
+}
+
+var digFGRe = regexp.MustCompile(`38;2;\d+;\d+;\d+`)
+
+func distinctFG(s string) int {
+	seen := map[string]struct{}{}
+	for _, m := range digFGRe.FindAllString(s, -1) {
+		seen[m] = struct{}{}
+	}
+	return len(seen)
+}
+
+func TestDigitalGradientPaintsMultipleColors(t *testing.T) {
+	r := lipgloss.NewRenderer(io.Discard)
+	r.SetColorProfile(termenv.TrueColor)
+	sunset, err := theme.Resolve("sunset", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := render.RenderContext{
+		Now:    clock.NewSnapshot(time.Date(2026, 1, 2, 15, 4, 5, 0, time.UTC)),
+		Theme:  sunset,
+		Format: config.FormatOptions{Hour24: true, ShowSeconds: true, Font: "block"},
+		Gran:   clock.GranSeconds,
+		Width:  80, Height: 24,
+		Caps: caps.New(r, true),
+	}
+	if n := distinctFG(New().Render(ctx)); n < 2 {
+		t.Errorf("gradient digits used %d distinct colors, want ≥2", n)
+	}
 }

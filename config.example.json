@@ -1,0 +1,27 @@
+{
+  "mode": "digital",
+  "theme": "tokyo-night",
+  "customTheme": {
+    "primary": "#4ade80",
+    "accent": "#bef264",
+    "secondary": "#dcfce7",
+    "muted": "#3f6212",
+    "background": "#0a140f",
+    "gradient": {
+      "stops": ["#d9f99d", "#84cc16", "#16a34a", "#065f46"],
+      "direction": "vertical"
+    }
+  },
+  "granularity": "seconds",
+  "cellAspect": 0,
+  "showHelp": true,
+  "format": {
+    "hour24": true,
+    "showSeconds": true,
+    "showDate": true,
+    "dateFormat": "Mon 2006-01-02",
+    "blinkColon": false,
+    "font": "block",
+    "showNumbers": true
+  }
+}

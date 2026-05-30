@@ -5,17 +5,16 @@ Module: `github.com/michi-1221/tty-clock`. Go 1.26, darwin/arm64.
 
 ## Documentation convention (IMPORTANT)
 
-**`README.md` is the spec, and it must be kept in sync in the same change as the
-code.** Whenever you implement or change a feature, behavior, or the config:
+**`README.md` is the user-facing manual** — how to install, run, and configure
+the clock. Keep it to what an *end user* needs: install, keys, the config
+options / example / themes, and user-visible behavior. **Whenever a change adds
+or alters user-visible behavior or config, update the relevant README section in
+the same change — but add only user-necessary information.**
 
-- Update the **JSON configuration schema** in README (field tables: type,
-  default, allowed values, notes) — add rows/sections for anything new.
-- Update the **project spec / architecture** section to match reality.
-- Append a line to the **Spec changelog** section describing what landed.
-
-Do not let README drift from the implementation. If a change makes a documented
-behavior wrong, fix the docs in the same edit. Treat README as authoritative for
-the config format and user-visible behavior.
+Keep developer/internal detail **out** of the README: architecture, rendering
+invariants, the release/npm pipeline, and per-change "spec changelog" notes
+belong here in CLAUDE.md and in the code, not in the README. If a change makes a
+documented user behavior wrong, fix the README in the same edit.
 
 ## Commands
 

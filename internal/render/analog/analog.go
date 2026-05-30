@@ -72,7 +72,7 @@ func (AnalogRenderer) Render(ctx render.RenderContext) string {
 	if ctx.Format.ShowSeconds && ctx.Gran == clock.GranSeconds {
 		hand(c, cx, cy, rx, ry, 0.92, secAngle(ctx.Now)) // second hand; hidden by 's'
 	}
-	return ctx.Caps.Renderer.NewStyle().Foreground(ctx.Theme.Accent).Render(c.String())
+	return render.Colorize(ctx.Caps.Renderer, c.String(), ctx.Theme, ctx.Theme.Accent)
 }
 
 // digitFont is a 3×5 dot matrix for 0–9, plotted into the braille canvas so the

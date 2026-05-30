@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 	"time"
 
@@ -113,4 +114,22 @@ func containsESC(s string) bool {
 		}
 	}
 	return false
+}
+
+var fgRe = regexp.MustCompile(`38;2;\d+;\d+;\d+`)
+
+func TestAnalogGradientPaintsMultipleColors(t *testing.T) {
+	sunset, err := theme.Resolve("sunset", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx := ctxAt(t, 40, 20, termenv.TrueColor)
+	ctx.Theme = sunset
+	seen := map[string]struct{}{}
+	for _, m := range fgRe.FindAllString(New().Render(ctx), -1) {
+		seen[m] = struct{}{}
+	}
+	if len(seen) < 2 {
+		t.Errorf("gradient dial used %d distinct colors, want ≥2", len(seen))
+	}
 }

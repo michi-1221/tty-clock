@@ -50,7 +50,7 @@ func (DigitalRenderer) Render(ctx render.RenderContext) string {
 
 	base := font.Compose(timeDigits(ctx), blinkOff(ctx))
 	art := scaleArt(base, effectiveScale(ctx, font, base))
-	parts := []string{r.NewStyle().Foreground(ctx.Theme.Primary).Render(art)}
+	parts := []string{render.Colorize(r, art, ctx.Theme, ctx.Theme.Primary)}
 
 	if ctx.Format.ShowDate {
 		date := ctx.Now.T.Format(ctx.Format.DateFormat)
