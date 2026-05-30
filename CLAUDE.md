@@ -49,6 +49,7 @@ go run .                                     # needs a real TTY (won't run headl
 
 ## Status
 
-Phase 1 complete (digital). Phase 2: analog braille + `m` toggle, live reload
-(`r`), `seg7` font, multi-color hands. Runtime key toggles are ephemeral (not
-written back to the config file).
+Phase 1 complete (digital). Phase 2 complete (analog braille + `m`, live reload
+`r`). Config lives at `~/.tty-clock/config.json` (scaffolded on first run).
+Runtime toggles (`s`/`t`/`m`/`?`) are **persisted** back to that file via
+`config.Save` (atomic). Later: `seg7` font, multi-color hands, fsnotify.

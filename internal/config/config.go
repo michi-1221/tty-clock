@@ -11,6 +11,7 @@ type Config struct {
 	CustomTheme *theme.Palette `json:"customTheme"` // optional inline override (nil ok)
 	Granularity string         `json:"granularity"` // "seconds" | "minutes"
 	CellAspect  float64        `json:"cellAspect"`  // analog dial: cell height/width; 0 = auto-detect (fallback 2.0)
+	ShowHelp    bool           `json:"showHelp"`    // help line visible at startup; default true
 	Format      FormatOptions  `json:"format"`
 }
 
@@ -33,6 +34,7 @@ func DefaultConfig() Config {
 		Mode:        "digital",
 		Theme:       theme.DefaultPreset,
 		Granularity: "seconds",
+		ShowHelp:    true,
 		Format: FormatOptions{
 			Hour24:      true,
 			ShowSeconds: true,

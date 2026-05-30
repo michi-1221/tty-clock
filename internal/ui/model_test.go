@@ -240,21 +240,77 @@ func TestReloadAppliesFileValues(t *testing.T) {
 	}
 }
 
-func TestReloadDiscardsEphemeralToggles(t *testing.T) {
-	path := writeConfig(t, `{"theme":"tokyo-night","format":{"showSeconds":true}}`)
-	m := New(config.DefaultConfig(), path, testCaps())
-	m2, _ := m.Update(runeKey('s'))          // seconds → false (ephemeral)
-	m3, _ := m2.(Model).Update(runeKey('t')) // theme → dracula (ephemeral)
-	if m3.(Model).fmtOpts.ShowSeconds {
-		t.Fatal("precondition: 's' should have turned seconds off")
+// newModelWithFile builds a model whose config was loaded from a temp file, so
+// runtime toggles persist back to that same file.
+func newModelWithFile(t *testing.T, body string) (Model, string) {
+	t.Helper()
+	path := writeConfig(t, body)
+	cfg, err := config.Load(path)
+	if err != nil {
+		t.Fatal(err)
 	}
-	nm, _ := m3.(Model).Update(runeKey('r'))
-	got := nm.(Model)
-	if !got.fmtOpts.ShowSeconds {
-		t.Error("reload should restore showSeconds=true from file (toggle discarded)")
+	return New(cfg, path, testCaps()), path
+}
+
+func TestToggleSecondsPersists(t *testing.T) {
+	m, path := newModelWithFile(t, `{"format":{"showSeconds":true}}`)
+	nm, _ := m.Update(runeKey('s'))
+	if nm.(Model).err != nil {
+		t.Fatalf("persist error: %v", nm.(Model).err)
 	}
-	if got.theme.Name != "tokyo-night" {
-		t.Errorf("reload should restore theme to tokyo-night, got %q", got.theme.Name)
+	if cfg, _ := config.Load(path); cfg.Format.ShowSeconds {
+		t.Error("'s' should persist showSeconds=false to the config file")
+	}
+}
+
+func TestToggleModePersists(t *testing.T) {
+	m, path := newModelWithFile(t, `{"mode":"digital"}`)
+	m.Update(runeKey('m'))
+	if cfg, _ := config.Load(path); cfg.Mode != "analog" {
+		t.Errorf("'m' should persist mode=analog, got %q", cfg.Mode)
+	}
+}
+
+func TestToggleHelpPersists(t *testing.T) {
+	m, path := newModelWithFile(t, `{"showHelp":true}`)
+	nm, _ := m.Update(runeKey('?'))
+	if nm.(Model).showHelp {
+		t.Error("in-memory showHelp should be false after '?'")
+	}
+	if cfg, _ := config.Load(path); cfg.ShowHelp {
+		t.Error("'?' should persist showHelp=false")
+	}
+}
+
+func TestCycleThemePersistsAndDropsOverride(t *testing.T) {
+	m, path := newModelWithFile(t, `{"theme":"tokyo-night","customTheme":{"accent":"#ff0000"}}`)
+	m.Update(runeKey('t'))
+	cfg, _ := config.Load(path)
+	if cfg.Theme != "dracula" {
+		t.Errorf("'t' should persist theme=dracula, got %q", cfg.Theme)
+	}
+	if cfg.CustomTheme != nil {
+		t.Error("cycling theme should drop the inline customTheme override in the file")
+	}
+}
+
+func TestNewReadsShowHelp(t *testing.T) {
+	cfg := config.DefaultConfig()
+	cfg.ShowHelp = false
+	if New(cfg, "", testCaps()).showHelp {
+		t.Error("New should honor cfg.ShowHelp=false")
+	}
+}
+
+func TestReloadPicksUpExternalEdit(t *testing.T) {
+	m, path := newModelWithFile(t, `{"theme":"tokyo-night"}`)
+	// Simulate editing the file externally, then pressing 'r'.
+	if err := os.WriteFile(path, []byte(`{"theme":"nord"}`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	nm, _ := m.Update(runeKey('r'))
+	if got := nm.(Model).theme.Name; got != "nord" {
+		t.Errorf("reload should pick up external edit (theme=nord), got %q", got)
 	}
 }
 

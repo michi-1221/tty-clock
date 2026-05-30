@@ -64,7 +64,7 @@ func New(cfg config.Config, configPath string, c caps.Capabilities) Model {
 		caps:       c,
 		keys:       defaultKeyMap(),
 		help:       help.New(),
-		showHelp:   true, // help line visible by default; '?' hides it
+		showHelp:   cfg.ShowHelp, // initial help visibility from config; '?' toggles & persists
 		configPath: configPath,
 		err:        err,
 	}
@@ -103,25 +103,29 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	case key.Matches(msg, m.keys.ToggleSecs):
 		m.fmtOpts.ShowSeconds = !m.fmtOpts.ShowSeconds
-		m.err = nil
-		return m, nil
+		m.cfg.Format.ShowSeconds = m.fmtOpts.ShowSeconds
+		return m.persist()
 	case key.Matches(msg, m.keys.CycleTheme):
-		if th, err := theme.Resolve(theme.Next(m.theme.Name), nil); err == nil {
+		next := theme.Next(m.theme.Name)
+		if th, err := theme.Resolve(next, nil); err == nil {
 			m.theme = th
-			m.err = nil
+			m.cfg.Theme = next
+			m.cfg.CustomTheme = nil // cycling walks clean presets; drop any inline override
+			return m.persist()
 		}
 		return m, nil
 	case key.Matches(msg, m.keys.Help):
 		m.showHelp = !m.showHelp
-		return m, nil
+		m.cfg.ShowHelp = m.showHelp
+		return m.persist()
 	case key.Matches(msg, m.keys.ToggleMode):
 		if m.mode == clock.ModeDigital {
 			m.mode = clock.ModeAnalog
 		} else {
 			m.mode = clock.ModeDigital
 		}
-		m.err = nil
-		return m, nil
+		m.cfg.Mode = m.mode.String()
+		return m.persist()
 	case key.Matches(msg, m.keys.Reload):
 		nm, cmd := m.reload()
 		return nm, cmd
@@ -129,10 +133,24 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// reload re-reads the config file and rebuilds ALL derived state from it, so the
-// file is the single source of truth — ephemeral s/t/m toggles are discarded.
-// It never crashes: any failure stays in m.err and leaves the running clock
-// untouched. The tick is only re-armed when the granularity actually changed.
+// persist writes the current config back to the file so runtime toggles survive
+// restarts and reloads. Best-effort: a write failure is surfaced in the footer
+// but the in-memory change is kept; a no-op when there is no config file.
+func (m Model) persist() (tea.Model, tea.Cmd) {
+	m.err = nil
+	if m.configPath != "" {
+		if err := config.Save(m.configPath, m.cfg); err != nil {
+			m.err = err
+		}
+	}
+	return m, nil
+}
+
+// reload re-reads the config file and rebuilds ALL derived state from it — handy
+// after editing the file externally. Runtime toggles also write to this file
+// (see persist), so reloading is consistent with what's on screen. It never
+// crashes: any failure stays in m.err and leaves the running clock untouched.
+// The tick is only re-armed when the granularity actually changed.
 func (m Model) reload() (Model, tea.Cmd) {
 	// Started with no file (pure defaults)? Pick up a file created since launch
 	// and adopt it for this and future reloads.
@@ -166,6 +184,7 @@ func (m Model) reload() (Model, tea.Cmd) {
 	m.mode = newMode
 	m.gran = newGran
 	m.fmtOpts = cfg.Format
+	m.showHelp = cfg.ShowHelp
 	m.err = nil
 
 	// Re-arm only when granularity changed: bump the generation so the in-flight

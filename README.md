@@ -71,8 +71,8 @@ linker, and reads `dev` for local builds).
 | `m`                 | switch mode: digital ⇄ analog            |
 | `r`                 | reload the config file                   |
 
-Runtime toggles (`s`, `t`) are **ephemeral** — they are *not* written back to
-the config file. Restart or a future reload returns to the file's values.
+Runtime toggles (`s`, `t`, `m`, `?`) are **saved back to the config file**
+immediately (atomic write), so they persist across restarts and reloads.
 
 ## Configuration
 
@@ -99,6 +99,7 @@ rejected. Syntax and type errors report `line:col`.
 | `customTheme` | object \| null| `null`         | partial palette override (see below)              |
 | `granularity` | string        | `"seconds"`    | `"seconds"`, `"minutes"` — update frequency       |
 | `cellAspect`  | number        | `0`            | analog dial cell height/width; `0` = auto-detect (fallback 2.0) |
+| `showHelp`    | bool          | `true`         | help line visible at startup (toggled live with `?`) |
 | `format`      | object        | (see below)    | display options                                   |
 
 **`format`**
@@ -153,9 +154,11 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
   terminal's pixel size (`TIOCGWINSZ`) so the dial looks circular regardless of
   font; set `cellAspect` to override (e.g. `2.4`) if your terminal doesn't
   report pixels and the dial looks oval.
-- **Live reload:** `r` re-reads the config file; the file is the source of
-  truth, so runtime `s`/`t`/`m` toggles are discarded. A bad file is reported
-  in the footer and never stops the clock.
+- **Config sync:** runtime toggles (`s`/`t`/`m`/`?`) are written back to the
+  config file, and `r` re-reads it — so the file and the running clock stay in
+  sync, and `r` also picks up edits you make to the file by hand. A bad file is
+  reported in the footer and never stops the clock. (Cycling themes with `t`
+  drops any inline `customTheme` override, since the cycle walks clean presets.)
 
 ### Example `config.json`
 
@@ -165,6 +168,8 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
   "theme": "tokyo-night",
   "customTheme": { "accent": "#ff79c6" },
   "granularity": "seconds",
+  "cellAspect": 0,
+  "showHelp": true,
   "format": {
     "hour24": false,
     "showSeconds": true,
@@ -172,7 +177,8 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
     "dateFormat": "Mon 02 Jan 2006",
     "blinkColon": true,
     "showAMPM": true,
-    "font": "block"
+    "font": "block",
+    "showNumbers": true
   }
 }
 ```
@@ -292,6 +298,9 @@ terminal to confirm live updates and key handling.
 - **Phase 2.3** — config now lives at `~/.tty-clock/config.json`, scaffolded
   with the defaults on first run (replaces the XDG search; drops the `adrg/xdg`
   dependency). Existing files are never overwritten.
+- **Phase 2.4** — runtime toggles (`s`/`t`/`m`/`?`) are now **persisted** to the
+  config file via an atomic `config.Save` (reverses the earlier ephemeral
+  behavior); added the top-level `showHelp` option (help line visibility).
 - **Release pipeline** — tag-driven GoReleaser cross-compile (6 targets, pure
   Go) → GitHub Release; npm distribution via a main `tty-clock` launcher +
   per-platform `optionalDependencies` packages staged from `dist/` by
