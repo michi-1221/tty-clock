@@ -9,6 +9,7 @@ type keyMap struct {
 	CycleTheme key.Binding
 	ToggleSecs key.Binding
 	Reload     key.Binding // r: re-read the config file
+	Edit       key.Binding // e: open the config file in $EDITOR
 	Help       key.Binding
 }
 
@@ -19,6 +20,7 @@ func defaultKeyMap() keyMap {
 		CycleTheme: key.NewBinding(key.WithKeys("t"), key.WithHelp("t", "theme")),
 		ToggleSecs: key.NewBinding(key.WithKeys("s"), key.WithHelp("s", "seconds")),
 		Reload:     key.NewBinding(key.WithKeys("r"), key.WithHelp("r", "reload")),
+		Edit:       key.NewBinding(key.WithKeys("e"), key.WithHelp("e", "edit config")),
 		Help:       key.NewBinding(key.WithKeys("?"), key.WithHelp("?", "help")),
 	}
 }
@@ -26,12 +28,12 @@ func defaultKeyMap() keyMap {
 // ShortHelp / FullHelp implement help.KeyMap — the footer is generated from
 // these, so every working key must appear here.
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.ToggleSecs, k.CycleTheme, k.ToggleMode, k.Reload, k.Help, k.Quit}
+	return []key.Binding{k.ToggleSecs, k.CycleTheme, k.ToggleMode, k.Reload, k.Edit, k.Help, k.Quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.ToggleSecs, k.CycleTheme, k.ToggleMode},
-		{k.Reload, k.Help, k.Quit},
+		{k.Reload, k.Edit, k.Help, k.Quit},
 	}
 }

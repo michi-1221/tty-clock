@@ -92,6 +92,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		return m.handleKey(msg)
+	case editorFinishedMsg:
+		// Editor closed: surface a launch error, otherwise pick up the edits.
+		if msg.err != nil {
+			m.err = msg.err
+			return m, nil
+		}
+		nm, cmd := m.reload()
+		return nm, cmd
 	}
 	return m, nil
 }
@@ -129,6 +137,16 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	case key.Matches(msg, m.keys.Reload):
 		nm, cmd := m.reload()
 		return nm, cmd
+	case key.Matches(msg, m.keys.Edit):
+		// Adopt a config path if we launched on pure defaults (scaffold like
+		// reload does), then open it; Update reloads when the editor exits.
+		if m.configPath == "" {
+			if p, err := config.Resolve(""); err == nil && p != "" {
+				m.configPath = p
+			}
+		}
+		m.err = nil
+		return m, editConfigCmd(m.configPath)
 	}
 	return m, nil
 }

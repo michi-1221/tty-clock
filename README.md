@@ -33,6 +33,7 @@ go run github.com/michi-1221/tty-clock@latest         # or run once, no install
 | `m` | switch digital ⇄ analog |
 | `?` | show / hide the help line |
 | `r` | reload the config file |
+| `e` | open the config file in your editor |
 | `q` · `ctrl+c` · `esc` | quit |
 
 What you toggle is **saved to your config file** right away, so the clock starts
@@ -42,7 +43,9 @@ the same way next time.
 
 tty-clock keeps its settings in **`~/.tty-clock/config.json`**. The file is
 created for you (filled with the defaults) the first time you run the clock, so
-there's always something to edit. After editing, restart the clock or press
+there's always something to edit. Press **`e`** to open it in your editor
+(`$VISUAL` / `$EDITOR`, falling back to your OS default app) — when you save and
+close, the clock reloads automatically. You can also edit it by hand and press
 **`r`** to reload it live.
 
 > Want a different file? Run `tty-clock --config /path/to/config.json`.
