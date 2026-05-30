@@ -1,5 +1,5 @@
 # Binaries
-/tui-clock
+/tty-clock
 /dist/
 
 # Go test / coverage artifacts

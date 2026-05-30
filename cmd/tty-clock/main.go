@@ -1,4 +1,4 @@
-// Command tui-clock is a terminal clock built on Bubble Tea. main only parses
+// Command tty-clock is a terminal clock built on Bubble Tea. main only parses
 // flags, resolves/loads config, detects capabilities, and runs the program —
 // all logic lives in internal/.
 package main
@@ -25,19 +25,19 @@ func run() int {
 
 	path, err := config.Resolve(*configFlag)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "tui-clock:", err)
+		fmt.Fprintln(os.Stderr, "tty-clock:", err)
 		return 1
 	}
 	cfg, err := config.Load(path)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "tui-clock:", err)
+		fmt.Fprintln(os.Stderr, "tty-clock:", err)
 		return 1
 	}
 
 	model := ui.New(cfg, path, caps.Detect(os.Stdout))
 
 	if _, err := tea.NewProgram(model, tea.WithAltScreen()).Run(); err != nil {
-		fmt.Fprintln(os.Stderr, "tui-clock:", err)
+		fmt.Fprintln(os.Stderr, "tty-clock:", err)
 		return 1
 	}
 	return 0

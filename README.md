@@ -1,4 +1,4 @@
-# tui-clock
+# tty-clock
 
 A terminal clock built with **Go + [Bubble Tea](https://github.com/charmbracelet/bubbletea)**.
 Configuration-driven, theme-aware, keyboard-controlled. Aims for the "always nice to
@@ -18,9 +18,9 @@ look at" feel of k9s / lazygit.
 ## Run
 
 ```bash
-go run ./cmd/tui-clock                                   # XDG config or defaults
-go run ./cmd/tui-clock --config path/to/config.json      # explicit config
-go build -o tui-clock ./cmd/tui-clock                    # build a binary
+go run ./cmd/tty-clock                                   # XDG config or defaults
+go run ./cmd/tty-clock --config path/to/config.json      # explicit config
+go build -o tty-clock ./cmd/tty-clock                    # build a binary
 ```
 
 ## Keybindings
@@ -42,8 +42,8 @@ the config file. Restart or a future reload returns to the file's values.
 ### Resolution order
 
 1. `--config <path>` — explicit. The file **must exist** (missing is a fatal error).
-2. Otherwise — XDG search for `tui-clock/config.json` (e.g.
-   `$XDG_CONFIG_HOME/tui-clock/config.json`, or `~/.config/tui-clock/config.json`).
+2. Otherwise — XDG search for `tty-clock/config.json` (e.g.
+   `$XDG_CONFIG_HOME/tty-clock/config.json`, or `~/.config/tty-clock/config.json`).
    If not found, **built-in defaults** are used silently.
 
 Loading rules: defaults are the baseline; the file is overlaid on top, so any
@@ -139,7 +139,7 @@ Default is **tokyo-night**. `t` cycles through them in this order.
 ## Architecture (project spec)
 
 ```
-cmd/tui-clock/main.go   flags · config resolve · caps detect · run (no logic)
+cmd/tty-clock/main.go   flags · config resolve · caps detect · run (no logic)
 internal/
   clock/   Mode/Granularity enums + TimeSnapshot  (framework-independent domain)
   config/  schema · defaults · Load (XDG + --config) · Validate · friendly errors
@@ -169,7 +169,7 @@ go build ./... && go vet ./... && go test ./...
 go test ./internal/render/digital -update   # regenerate View golden files
 ```
 
-Interactive behavior needs a real TTY, so run `go run ./cmd/tui-clock` in your
+Interactive behavior needs a real TTY, so run `go run ./cmd/tty-clock` in your
 terminal to confirm live updates and key handling.
 
 ## Spec changelog

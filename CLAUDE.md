@@ -1,4 +1,4 @@
-# tui-clock — guidance for Claude
+# tty-clock — guidance for Claude
 
 A terminal clock in **Go + Bubble Tea** (digital now; analog/braille planned).
 Module: `github.com/michi-1221/tty-clock`. Go 1.26, darwin/arm64.
@@ -23,7 +23,7 @@ the config format and user-visible behavior.
 go build ./... && go vet ./... && go test ./...
 go test ./internal/render/digital -update   # regenerate View golden files
 gofmt -w <files>
-go run ./cmd/tui-clock                       # needs a real TTY (won't run headless)
+go run ./cmd/tty-clock                       # needs a real TTY (won't run headless)
 ```
 
 ## Invariants to preserve (don't regress)

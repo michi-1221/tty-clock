@@ -12,7 +12,7 @@ import (
 )
 
 // ConfigName is the relative path searched under the XDG config dirs.
-const ConfigName = "tui-clock/config.json"
+const ConfigName = "tty-clock/config.json"
 
 // Resolve decides which config file to load:
 //   - explicit != "": that file MUST exist (a missing file is fatal).
