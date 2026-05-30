@@ -15,13 +15,23 @@ import (
 	"github.com/michi-1221/tty-clock/internal/ui"
 )
 
+// version is the build version, overwritten by the linker at release time
+// (goreleaser: -X main.version={{.Version}}). Defaults to "dev" for local builds.
+var version = "dev"
+
 func main() {
 	os.Exit(run())
 }
 
 func run() int {
 	configFlag := flag.String("config", "", "path to config.json (default: XDG search)")
+	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println("tty-clock", version)
+		return 0
+	}
 
 	path, err := config.Resolve(*configFlag)
 	if err != nil {

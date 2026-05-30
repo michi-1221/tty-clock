@@ -17,8 +17,21 @@ look at" feel of k9s / lazygit.
 
 ## Install
 
-With the Go toolchain installed, run it without installing anything
-(npx-style):
+**No toolchain (npm / npx).** A prebuilt binary for your platform is published
+to npm; `npx` fetches and runs it:
+
+```bash
+npx tty-clock            # run without installing
+npm install -g tty-clock # or install the command globally
+```
+
+The `tty-clock` npm package is a thin launcher: the binaries ship in
+per-platform packages (`tty-clock-darwin-arm64`, `tty-clock-linux-x64`, …)
+declared as `optionalDependencies` with `os`/`cpu` pins, so npm downloads only
+the one matching your machine. Prebuilt for macOS / Linux / Windows on
+x64 / arm64.
+
+**With the Go toolchain.** Run it without installing anything:
 
 ```bash
 go run github.com/michi-1221/tty-clock@latest
@@ -36,8 +49,13 @@ tty-clock
 ```bash
 go run .                                  # XDG config or defaults
 go run . --config path/to/config.json     # explicit config
+go run . --version                        # print version and exit
 go build -o tty-clock .                   # build a binary
 ```
+
+Flags: `--config <path>` (see resolution order below), `--version` (prints
+`tty-clock <version>`; the version is stamped in at release time via the
+linker, and reads `dev` for local builds).
 
 ## Keybindings
 
@@ -155,7 +173,11 @@ Default is **tokyo-night**. `t` cycles through them in this order.
 ## Architecture (project spec)
 
 ```
-main.go                 flags · config resolve · caps detect · run (no logic)
+main.go                 flags (--config, --version) · config resolve · caps detect · run (no logic)
+.goreleaser.yaml        cross-compile matrix (6 targets) · archives · GitHub Release
+.github/workflows/release.yml  tag push → GoReleaser → stage + npm publish
+scripts/stage-npm.mjs   dist/ binaries → npm packages (main + per-platform)
+npm/tty-clock/          main npm package: bin launcher + optionalDependencies
 internal/
   clock/   Mode/Granularity enums + TimeSnapshot  (framework-independent domain)
   config/  schema · defaults · Load (XDG + --config) · Validate · friendly errors
@@ -178,6 +200,42 @@ Key design points:
 - **Color:** styling goes through `caps.Renderer` (an explicit renderer), never
   the global lipgloss default — this keeps golden tests deterministic.
 
+## Release & distribution
+
+Releases are tag-driven and fully automated by
+`.github/workflows/release.yml`:
+
+1. **Tag** — push `vX.Y.Z`:
+   ```bash
+   git tag v0.1.0 && git push origin v0.1.0
+   ```
+2. **Build** — [GoReleaser](https://goreleaser.com) cross-compiles all six
+   targets on a single Linux runner (pure Go, `CGO_ENABLED=0`), stamps
+   `main.version` via `-ldflags -X`, writes archives + `checksums.txt`, and
+   creates the **GitHub Release** with `dist/{artifacts,metadata}.json`.
+3. **Stage** — `scripts/stage-npm.mjs` reads those JSON manifests and lays out
+   `dist/npm/`: a per-platform package per binary (`tty-clock-<platform>-<arch>`
+   with `os`/`cpu` pins, binary `chmod 755`) and the main `tty-clock` package
+   (version + `optionalDependencies` injected).
+4. **Publish** — platform packages publish first, then `tty-clock`, all with
+   `npm publish --provenance --access public`, so `npx tty-clock` resolves a
+   single matching binary.
+
+| Target (GOOS/GOARCH) | npm platform package      |
+| -------------------- | ------------------------- |
+| darwin/arm64         | `tty-clock-darwin-arm64`  |
+| darwin/amd64         | `tty-clock-darwin-x64`    |
+| linux/arm64          | `tty-clock-linux-arm64`   |
+| linux/amd64          | `tty-clock-linux-x64`     |
+| windows/arm64        | `tty-clock-win32-arm64`   |
+| windows/amd64        | `tty-clock-win32-x64`     |
+
+**Prerequisite:** an npm automation token stored as the `NPM_TOKEN` repository
+secret (GitHub → Settings → Secrets and variables → Actions). `GITHUB_TOKEN` is
+provided automatically. The GOOS/GOARCH → Node `process.platform`/`process.arch`
+naming (`windows`→`win32`, `amd64`→`x64`) is what lets the launcher resolve
+`tty-clock-${process.platform}-${process.arch}` at runtime.
+
 ## Verification
 
 ```bash
@@ -196,3 +254,8 @@ terminal to confirm live updates and key handling.
   `?` (hidden = clock fills the screen).
 - **Phase 1.1** — window-proportional font scaling (integer steps, anchored at
   54×10 = ×1; `floor(min(w/54, h/10))`). Digits scale; date/AM-PM stay text.
+- **Release pipeline** — tag-driven GoReleaser cross-compile (6 targets, pure
+  Go) → GitHub Release; npm distribution via a main `tty-clock` launcher +
+  per-platform `optionalDependencies` packages staged from `dist/` by
+  `scripts/stage-npm.mjs`, so `npx tty-clock` runs a prebuilt binary with no Go
+  toolchain. Added `main.version` + `--version` flag (linker-stamped).

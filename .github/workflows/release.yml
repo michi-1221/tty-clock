@@ -1,0 +1,62 @@
+name: release
+
+# Push a tag like v1.2.3 to cut a release:
+#   git tag v1.2.3 && git push origin v1.2.3
+# GoReleaser cross-compiles every target on one Linux runner (pure Go, CGO off)
+# and creates the GitHub Release; we then stage npm packages from its output and
+# publish them so `npx tty-clock` works.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # GoReleaser creates the GitHub Release
+  id-token: write # npm provenance attestation
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # GoReleaser needs full history + tags
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Stage npm packages
+        run: node scripts/stage-npm.mjs
+
+      - name: Publish to npm
+        working-directory: dist/npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Platform packages first so the main package's optionalDependencies
+          # resolve. The glob excludes the main package (no trailing "-<plat>").
+          for dir in tty-clock-*; do
+            echo "::group::publish $dir"
+            npm publish "$dir" --provenance --access public
+            echo "::endgroup::"
+          done
+          echo "::group::publish tty-clock"
+          npm publish tty-clock --provenance --access public
+          echo "::endgroup::"

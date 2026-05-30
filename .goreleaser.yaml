@@ -1,0 +1,58 @@
+# GoReleaser config — https://goreleaser.com
+# Pure-Go (CGO disabled) so every target cross-compiles on one Linux runner.
+# `release --clean` builds the binaries, writes dist/{artifacts,metadata}.json,
+# and creates the GitHub Release. The npm packages are staged from those
+# artifacts afterwards (see scripts/stage-npm.mjs).
+version: 2
+
+project_name: tty-clock
+
+before:
+  hooks:
+    # Read-only: must not dirty the work tree, or `release` aborts.
+    - go mod download
+
+builds:
+  - id: tty-clock
+    main: .
+    binary: tty-clock
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: archives
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: michi-1221
+    name: tty-clock
+  draft: false
+  prerelease: auto

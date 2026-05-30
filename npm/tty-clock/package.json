@@ -1,0 +1,40 @@
+{
+  "name": "tty-clock",
+  "version": "0.0.0",
+  "description": "A configurable, themeable digital terminal clock (TUI) built with Go + Bubble Tea.",
+  "bin": {
+    "tty-clock": "bin/tty-clock.js"
+  },
+  "files": [
+    "bin/"
+  ],
+  "keywords": [
+    "tui",
+    "clock",
+    "terminal",
+    "cli",
+    "bubbletea",
+    "go"
+  ],
+  "homepage": "https://github.com/michi-1221/tty-clock#readme",
+  "bugs": {
+    "url": "https://github.com/michi-1221/tty-clock/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michi-1221/tty-clock.git"
+  },
+  "author": "michi-1221",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "optionalDependencies": {
+    "tty-clock-darwin-arm64": "0.0.0",
+    "tty-clock-darwin-x64": "0.0.0",
+    "tty-clock-linux-arm64": "0.0.0",
+    "tty-clock-linux-x64": "0.0.0",
+    "tty-clock-win32-arm64": "0.0.0",
+    "tty-clock-win32-x64": "0.0.0"
+  }
+}

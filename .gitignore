@@ -6,5 +6,18 @@
 *.out
 *.test
 
+# Secrets / credentials — NEVER commit (real tokens live in GitHub Secrets)
+.npmrc              # may hold //registry.npmjs.org/:_authToken=...
+.env                # local goreleaser/npm tokens (GITHUB_TOKEN, NPM_TOKEN)
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+.goreleaser-token
+
+# Local npm test installs
+node_modules/
+
 # Editor / OS noise
 .DS_Store
