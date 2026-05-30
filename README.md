@@ -239,8 +239,9 @@ Releases are tag-driven and fully automated by
    with `os`/`cpu` pins, binary `chmod 755`) and the main `tty-clock` package
    (version + `optionalDependencies` injected).
 4. **Publish** — platform packages publish first, then `tty-clock`, all with
-   `npm publish --provenance --access public`, so `npx tty-clock` resolves a
-   single matching binary.
+   `npm publish --access public`, so `npx tty-clock` resolves a single matching
+   binary. (Provenance is omitted because npm provenance requires a public
+   repo; add `--provenance` + `id-token: write` back if this repo goes public.)
 
 | Target (GOOS/GOARCH) | npm platform package      |
 | -------------------- | ------------------------- |

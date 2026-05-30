@@ -12,7 +12,8 @@ on:
 
 permissions:
   contents: write # GoReleaser creates the GitHub Release
-  id-token: write # npm provenance attestation
+# Note: no `id-token: write` — npm provenance (which needs it) requires a PUBLIC
+# repo, so we publish without --provenance. Add it back if the repo goes public.
 
 jobs:
   release:
@@ -54,9 +55,9 @@ jobs:
           # resolve. The glob excludes the main package (no trailing "-<plat>").
           for dir in tty-clock-*; do
             echo "::group::publish $dir"
-            npm publish "$dir" --provenance --access public
+            npm publish "$dir" --access public
             echo "::endgroup::"
           done
           echo "::group::publish tty-clock"
-          npm publish tty-clock --provenance --access public
+          npm publish tty-clock --access public
           echo "::endgroup::"
