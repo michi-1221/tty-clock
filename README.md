@@ -50,7 +50,7 @@ tty-clock
 ## Run from source
 
 ```bash
-go run .                                  # XDG config or defaults
+go run .                                  # ~/.tty-clock/config.json (created on first run)
 go run . --config path/to/config.json     # explicit config
 go run . --version                        # print version and exit
 go build -o tty-clock .                   # build a binary
@@ -79,9 +79,10 @@ the config file. Restart or a future reload returns to the file's values.
 ### Resolution order
 
 1. `--config <path>` — explicit. The file **must exist** (missing is a fatal error).
-2. Otherwise — XDG search for `tty-clock/config.json` (e.g.
-   `$XDG_CONFIG_HOME/tty-clock/config.json`, or `~/.config/tty-clock/config.json`).
-   If not found, **built-in defaults** are used silently.
+2. Otherwise — **`~/.tty-clock/config.json`**. On first run it is created with the
+   default config (the file shown below), then loaded — so you always have an
+   editable starting point; tweak it and reload with `r`. (If the home directory
+   can't be determined or the file can't be written, built-in defaults are used.)
 
 Loading rules: defaults are the baseline; the file is overlaid on top, so any
 omitted key (including nested `format` keys) keeps its default. Unknown keys are
@@ -200,7 +201,7 @@ scripts/stage-npm.mjs   dist/ binaries → npm packages (main + per-platform)
 npm/tty-clock/          main npm package: bin launcher + optionalDependencies
 internal/
   clock/   Mode/Granularity enums + TimeSnapshot  (framework-independent domain)
-  config/  schema · defaults · Load (XDG + --config) · Validate · friendly errors
+  config/  schema · defaults · Resolve (~/.tty-clock scaffold) · Load · Validate · errors
   theme/   Palette/Theme · 7 presets · Resolve (merge) · Next (cycle)
   caps/    explicit *lipgloss.Renderer + UTF-8/NO_COLOR heuristics
   render/  Renderer interface + RenderContext  (the tea-free rendering seam)
@@ -288,6 +289,9 @@ terminal to confirm live updates and key handling.
 - **Phase 2.2** — analog hour numbers drawn as braille dots (3×5 dot-matrix
   font) so they match the dial's pixel style; the analog second hand now honors
   `showSeconds` (hidden by `s` and at minute granularity).
+- **Phase 2.3** — config now lives at `~/.tty-clock/config.json`, scaffolded
+  with the defaults on first run (replaces the XDG search; drops the `adrg/xdg`
+  dependency). Existing files are never overwritten.
 - **Release pipeline** — tag-driven GoReleaser cross-compile (6 targets, pure
   Go) → GitHub Release; npm distribution via a main `tty-clock` launcher +
   per-platform `optionalDependencies` packages staged from `dist/` by

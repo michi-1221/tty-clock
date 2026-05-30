@@ -7,18 +7,31 @@ import (
 	"fmt"
 	"io"
 	"os"
-
-	"github.com/adrg/xdg"
+	"path/filepath"
 )
 
-// ConfigName is the relative path searched under the XDG config dirs.
-const ConfigName = "tty-clock/config.json"
+const (
+	configDirName  = ".tty-clock" // created under the user's home directory
+	configFileName = "config.json"
+)
+
+// HomeConfigPath returns ~/.tty-clock/config.json.
+func HomeConfigPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, configDirName, configFileName), nil
+}
 
 // Resolve decides which config file to load:
 //   - explicit != "": that file MUST exist (a missing file is fatal).
-//   - explicit == "": search XDG dirs; a missing file is fine (use defaults).
+//   - explicit == "": use ~/.tty-clock/config.json, creating it with the default
+//     config on first run, then loading it.
 //
-// The returned path is "" when no file applies (caller should use defaults).
+// Scaffolding is best-effort: if the home dir is unknown or the file can't be
+// written, Resolve returns "" so the caller runs with built-in defaults rather
+// than failing to start.
 func Resolve(explicit string) (string, error) {
 	if explicit != "" {
 		if _, err := os.Stat(explicit); err != nil {
@@ -26,11 +39,33 @@ func Resolve(explicit string) (string, error) {
 		}
 		return explicit, nil
 	}
-	path, err := xdg.SearchConfigFile(ConfigName)
+	path, err := HomeConfigPath()
 	if err != nil {
-		return "", nil // not found in any XDG dir → silently use defaults
+		return "", nil // home unknown → built-in defaults
+	}
+	switch _, statErr := os.Stat(path); {
+	case statErr == nil:
+		return path, nil // already exists → use it (never overwrite)
+	case !os.IsNotExist(statErr):
+		return "", fmt.Errorf("config file %q: %w", path, statErr)
+	}
+	if scaffold(path) != nil {
+		return "", nil // couldn't write → built-in defaults
 	}
 	return path, nil
+}
+
+// scaffold writes the default config to path (creating ~/.tty-clock/), so a
+// first-time user gets an editable starting point.
+func scaffold(path string) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(DefaultConfig(), "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, append(data, '\n'), 0o644)
 }
 
 // Load reads and validates the config at path. When path is "", it returns the

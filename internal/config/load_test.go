@@ -1,6 +1,7 @@
 package config
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -74,6 +75,51 @@ func TestLoadTypeError(t *testing.T) {
 	_, err := Load(cfgPath("typeerr.json"))
 	if err == nil || !strings.Contains(err.Error(), "type") {
 		t.Fatalf("want type error, got: %v", err)
+	}
+}
+
+func TestResolveScaffoldsOnFirstRun(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+
+	path, err := Resolve("")
+	if err != nil {
+		t.Fatalf("Resolve(\"\") error: %v", err)
+	}
+	want := filepath.Join(home, ".tty-clock", "config.json")
+	if path != want {
+		t.Fatalf("path = %q, want %q", path, want)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("scaffolded file missing: %v", err)
+	}
+	// The scaffolded file must load and equal the built-in defaults.
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load(scaffolded) error: %v", err)
+	}
+	if cfg != DefaultConfig() {
+		t.Errorf("scaffolded config != defaults:\n got %+v\nwant %+v", cfg, DefaultConfig())
+	}
+}
+
+func TestResolveDoesNotOverwriteExisting(t *testing.T) {
+	home := t.TempDir()
+	t.Setenv("HOME", home)
+	path := filepath.Join(home, ".tty-clock", "config.json")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	const custom = `{"theme":"nord"}`
+	if err := os.WriteFile(path, []byte(custom), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	got, err := Resolve("")
+	if err != nil || got != path {
+		t.Fatalf("Resolve(\"\") = %q, %v; want %q", got, err, path)
+	}
+	if b, _ := os.ReadFile(path); string(b) != custom {
+		t.Errorf("Resolve overwrote an existing config: %q", string(b))
 	}
 }
 
