@@ -111,7 +111,6 @@ rejected. Syntax and type errors report `line:col`.
 | `showDate`    | bool   | `true`             | date line below the clock                              |
 | `dateFormat`  | string | `"Mon 2006-01-02"` | Go time layout                                         |
 | `blinkColon`  | bool   | `false`            | seconds granularity only                               |
-| `showAMPM`    | bool   | `true`             | only meaningful when `hour24` is `false`               |
 | `font`        | string | `"block"`          | `"block"`, `"ascii"` (manual fallback), `"seg7"` (planned) |
 | `showNumbers` | bool   | `true`             | analog: draw the hour numbers 1–12 on the face          |
 
@@ -121,7 +120,7 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
 | Field        | Role                                            |
 | ------------ | ----------------------------------------------- |
 | `primary`    | digits / hands                                  |
-| `accent`     | colon / seconds / AM-PM                         |
+| `accent`     | colon / seconds / analog hands                  |
 | `secondary`  | date                                            |
 | `muted`      | clock face / ticks (reserved; analog v1 is single-color) |
 | `background` | optional surface — **not painted by default** (the terminal background is respected) |
@@ -131,8 +130,8 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
 - **Granularity vs seconds:** `granularity` is the *update frequency*;
   `showSeconds` is *display*. At `minutes`, seconds are auto-hidden and colon
   blink is disabled (so nothing looks frozen).
-- **12-hour:** always zero-padded (`03:04:05`) so digit width never jitters.
-  `AM`/`PM` is a small text label, never a giant glyph.
+- **12-hour:** always zero-padded (`03:04:05`) so digit width never jitters
+  (no AM/PM indicator).
 - **Degradation:** `NO_COLOR`, non-TTY, and `TERM=dumb` drop color; non-UTF-8
   locale / `TERM=dumb` (or `font: "ascii"`) switch to the ASCII fallback font.
 - **Time source:** the system clock (`time.Now()`), rendered in the local
@@ -141,7 +140,7 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
   **integer steps**, anchored so a **54×10** window renders the original size
   (×1): `scale = max(1, floor(min(width/54, height/10)))` → 108×20 = ×2,
   162×30 = ×3. The font doubles only when *both* dimensions reach 2×; the date
-  and AM/PM labels stay normal-size text.
+  label stays normal-size text.
 - **Analog mode:** a braille dial (face, 12 ticks, hour numbers 1–12,
   hour/minute/second hands) drawn entirely in braille dots (2×4 per cell — the
   finest character resolution), so the numbers are pixelated to match the dial.
@@ -176,7 +175,6 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
     "showDate": true,
     "dateFormat": "Mon 02 Jan 2006",
     "blinkColon": true,
-    "showAMPM": true,
     "font": "block",
     "showNumbers": true
   }
@@ -212,7 +210,7 @@ internal/
   caps/    explicit *lipgloss.Renderer + UTF-8/NO_COLOR heuristics
   render/  Renderer interface + RenderContext  (the tea-free rendering seam)
     digital/  giant block digits · ASCII fallback · font/glyphs
-    analog/   braille dial · midpoint-circle face · Bresenham hands
+    analog/   braille dial · aspect-correct ellipse face · Bresenham hands
   ui/      Model + Init/Update/View · keys · tick · layout · activeRenderer/reload  (only package importing bubbletea)
 ```
 
@@ -284,7 +282,7 @@ terminal to confirm live updates and key handling.
   seconds vs minutes granularity, keys `s`/`t`/`?`/`q`. Help line toggles with
   `?` (hidden = clock fills the screen).
 - **Phase 1.1** — window-proportional font scaling (integer steps, anchored at
-  54×10 = ×1; `floor(min(w/54, h/10))`). Digits scale; date/AM-PM stay text.
+  54×10 = ×1; `floor(min(w/54, h/10))`). Digits scale; the date stays text.
 - **Phase 2** — analog braille dial (`internal/render/analog`: integer
   midpoint-circle face, 12 ticks, Bresenham hands; single-color; sizes to the
   window). `m` toggles digital ⇄ analog, with auto-fallback to digital when the
@@ -303,6 +301,8 @@ terminal to confirm live updates and key handling.
 - **Phase 2.4** — runtime toggles (`s`/`t`/`m`/`?`) are now **persisted** to the
   config file via an atomic `config.Save` (reverses the earlier ephemeral
   behavior); added the top-level `showHelp` option (help line visibility).
+- **Phase 2.5** — removed the `showAMPM` option and the AM/PM indicator (12-hour
+  is shown without one).
 - **Release pipeline** — tag-driven GoReleaser cross-compile (6 targets, pure
   Go) → GitHub Release; npm distribution via a main `tty-clock` launcher +
   per-platform `optionalDependencies` packages staged from `dist/` by

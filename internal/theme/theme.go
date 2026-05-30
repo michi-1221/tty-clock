@@ -1,6 +1,6 @@
 // Package theme defines color palettes and resolved themes for the clock.
 //
-// Roles: Primary=digits/hands, Accent=seconds/colon/AM-PM, Secondary=date,
+// Roles: Primary=digits/hands, Accent=seconds/colon/analog hands, Secondary=date,
 // Muted=clock face/ticks, Background=optional surface.
 package theme
 

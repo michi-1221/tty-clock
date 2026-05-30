@@ -29,8 +29,8 @@ func TestLoadValid(t *testing.T) {
 	if cfg.Format.DateFormat != "Mon 2006-01-02" {
 		t.Errorf("DateFormat = %q, want default kept", cfg.Format.DateFormat)
 	}
-	if cfg.Format.ShowAMPM != true {
-		t.Error("ShowAMPM should keep default true")
+	if !cfg.Format.ShowNumbers {
+		t.Error("ShowNumbers should keep default true")
 	}
 	if cfg.Format.Font != "block" {
 		t.Errorf("Font = %q, want default block", cfg.Format.Font)

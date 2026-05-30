@@ -10,8 +10,8 @@ import (
 	"github.com/michi-1221/tty-clock/internal/render"
 )
 
-// DigitalRenderer draws HH:MM(:SS) as stacked glyph rows, with an optional
-// AM/PM label and date line beneath (both small text, never block glyphs ★4).
+// DigitalRenderer draws HH:MM(:SS) as stacked glyph rows, with an optional date
+// line beneath (small text, never block glyphs).
 type DigitalRenderer struct{}
 
 // New returns a stateless digital renderer.
@@ -52,14 +52,6 @@ func (DigitalRenderer) Render(ctx render.RenderContext) string {
 	art := scaleArt(base, effectiveScale(ctx, font, base))
 	parts := []string{r.NewStyle().Foreground(ctx.Theme.Primary).Render(art)}
 
-	if !ctx.Format.Hour24 && ctx.Format.ShowAMPM {
-		ampm := "AM"
-		if ctx.Now.IsPM {
-			ampm = "PM"
-		}
-		parts = append(parts, r.NewStyle().Foreground(ctx.Theme.Accent).Render(ampm))
-	}
-
 	if ctx.Format.ShowDate {
 		date := ctx.Now.T.Format(ctx.Format.DateFormat)
 		parts = append(parts, r.NewStyle().Foreground(ctx.Theme.Secondary).Render(date))
@@ -68,13 +60,10 @@ func (DigitalRenderer) Render(ctx render.RenderContext) string {
 	return lipgloss.JoinVertical(lipgloss.Center, parts...)
 }
 
-// extraRows counts the unscaled text rows (AM/PM, date) stacked under the
-// giant digits.
+// extraRows counts the unscaled text rows (the date) stacked under the giant
+// digits.
 func extraRows(ctx render.RenderContext) int {
 	n := 0
-	if !ctx.Format.Hour24 && ctx.Format.ShowAMPM {
-		n++
-	}
 	if ctx.Format.ShowDate {
 		n++
 	}
@@ -111,9 +100,6 @@ func (DigitalRenderer) MinSize(ctx render.RenderContext) (w, h int) {
 	art := font.Compose(timeDigits(ctx), false)
 	w = lipgloss.Width(art)
 	h = font.Rows
-	if !ctx.Format.Hour24 && ctx.Format.ShowAMPM {
-		h++
-	}
 	if ctx.Format.ShowDate {
 		if dw := lipgloss.Width(ctx.Now.T.Format(ctx.Format.DateFormat)); dw > w {
 			w = dw

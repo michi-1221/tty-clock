@@ -22,7 +22,6 @@ type FormatOptions struct {
 	ShowDate    bool   `json:"showDate"`    // default true
 	DateFormat  string `json:"dateFormat"`  // Go layout; default "Mon 2006-01-02"
 	BlinkColon  bool   `json:"blinkColon"`  // default false
-	ShowAMPM    bool   `json:"showAMPM"`    // default true (only meaningful when !Hour24)
 	Font        string `json:"font"`        // "block" | "ascii" | "seg7"; default "block"
 	ShowNumbers bool   `json:"showNumbers"` // analog: draw 1–12 on the face; default true
 }
@@ -41,7 +40,6 @@ func DefaultConfig() Config {
 			ShowDate:    true,
 			DateFormat:  "Mon 2006-01-02",
 			BlinkColon:  false,
-			ShowAMPM:    true,
 			Font:        "block",
 			ShowNumbers: true,
 		},

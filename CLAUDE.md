@@ -40,8 +40,8 @@ go run .                                     # needs a real TTY (won't run headl
 - **Styling goes through `caps.Renderer`** (an explicit `*lipgloss.Renderer`),
   never the global lipgloss default — keeps golden tests deterministic. Tests
   force the profile via `r.SetColorProfile(...)`.
-- **Block font draws digits and `:` only.** AM/PM and the date are small text
-  labels, never giant glyphs. Colon-blink swaps `:` for a same-width blank.
+- **Block font draws digits and `:` only.** The date is a small text label,
+  never giant glyphs. Colon-blink swaps `:` for a same-width blank.
 - **Pure View:** never call `time.Now()` in `View`/render; read `m.now` /
   `TimeSnapshot`.
 - **Enums live in `internal/clock`** to avoid `config`↔`render`↔`ui` import

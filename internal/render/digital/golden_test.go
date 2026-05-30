@@ -74,8 +74,8 @@ func TestDigitalGolden(t *testing.T) {
 			gran: clock.GranSeconds,
 		},
 		{
-			name: "digital_12h_ampm_nosecs",
-			fmt:  config.FormatOptions{Hour24: false, ShowSeconds: false, ShowDate: false, ShowAMPM: true, Font: "block"},
+			name: "digital_12h_nosecs",
+			fmt:  config.FormatOptions{Hour24: false, ShowSeconds: false, ShowDate: false, Font: "block"},
 			gran: clock.GranSeconds,
 		},
 		{

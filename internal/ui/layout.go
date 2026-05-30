@@ -132,12 +132,5 @@ func (m Model) compactTime() string {
 	} else {
 		s = fmt.Sprintf("%02d:%02d", hour, sn.Minute)
 	}
-	if !m.fmtOpts.Hour24 && m.fmtOpts.ShowAMPM {
-		if sn.IsPM {
-			s += " PM"
-		} else {
-			s += " AM"
-		}
-	}
 	return m.caps.Renderer.NewStyle().Foreground(m.theme.Primary).Render(s)
 }
