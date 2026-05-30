@@ -9,7 +9,7 @@ macOS, Linux, and Windows.
 Run it instantly with npm — no toolchain required:
 
 ```bash
-npx tty-clock              # run it right now
+npx tty-clock@latest              # run it right now
 npm install -g tty-clock   # or install the `tty-clock` command
 ```
 
