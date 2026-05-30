@@ -53,11 +53,13 @@ jobs:
           set -euo pipefail
           # Platform packages first so the main package's optionalDependencies
           # resolve. The glob excludes the main package (no trailing "-<plat>").
+          # NOTE: the "./" is required — `npm publish <name>` treats a bare token
+          # as a registry spec (and 404s); "./dir" forces folder interpretation.
           for dir in tty-clock-*; do
             echo "::group::publish $dir"
-            npm publish "$dir" --access public
+            npm publish "./$dir" --access public
             echo "::endgroup::"
           done
           echo "::group::publish tty-clock"
-          npm publish tty-clock --access public
+          npm publish ./tty-clock --access public
           echo "::endgroup::"
