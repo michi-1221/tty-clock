@@ -1,0 +1,11 @@
+{
+  "mode": "digital",
+  "theme": "dracula",
+  "granularity": "minutes",
+  "format": {
+    "hour24": false,
+    "showSeconds": false,
+    "showDate": false,
+    "blinkColon": true
+  }
+}

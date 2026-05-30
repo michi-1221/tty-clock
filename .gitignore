@@ -1,0 +1,10 @@
+# Binaries
+/tui-clock
+/dist/
+
+# Go test / coverage artifacts
+*.out
+*.test
+
+# Editor / OS noise
+.DS_Store
