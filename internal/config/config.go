@@ -10,6 +10,7 @@ type Config struct {
 	Theme       string         `json:"theme"`       // preset name
 	CustomTheme *theme.Palette `json:"customTheme"` // optional inline override (nil ok)
 	Granularity string         `json:"granularity"` // "seconds" | "minutes"
+	CellAspect  float64        `json:"cellAspect"`  // analog dial: cell height/width; 0 = auto-detect (fallback 2.0)
 	Format      FormatOptions  `json:"format"`
 }
 
@@ -22,6 +23,7 @@ type FormatOptions struct {
 	BlinkColon  bool   `json:"blinkColon"`  // default false
 	ShowAMPM    bool   `json:"showAMPM"`    // default true (only meaningful when !Hour24)
 	Font        string `json:"font"`        // "block" | "ascii" | "seg7"; default "block"
+	ShowNumbers bool   `json:"showNumbers"` // analog: draw 1–12 on the face; default true
 }
 
 // DefaultConfig returns the baseline a loaded file is overlaid onto, so any
@@ -39,6 +41,7 @@ func DefaultConfig() Config {
 			BlinkColon:  false,
 			ShowAMPM:    true,
 			Font:        "block",
+			ShowNumbers: true,
 		},
 	}
 }

@@ -34,15 +34,23 @@ func scaleFor(w, h int) int {
 
 // renderContext snapshots model state into the pure render input.
 func (m Model) renderContext(w, h, scale int) render.RenderContext {
+	aspect := m.caps.CellAspect // measured cell height/width
+	if m.cfg.CellAspect > 0 {
+		aspect = m.cfg.CellAspect // explicit config override wins
+	}
+	if aspect <= 0 {
+		aspect = 2.0 // fallback when the terminal doesn't report pixel size
+	}
 	return render.RenderContext{
-		Now:    clock.NewSnapshot(m.now),
-		Theme:  m.theme,
-		Format: m.fmtOpts,
-		Gran:   m.gran,
-		Width:  w,
-		Height: h,
-		Scale:  scale,
-		Caps:   m.caps,
+		Now:        clock.NewSnapshot(m.now),
+		Theme:      m.theme,
+		Format:     m.fmtOpts,
+		Gran:       m.gran,
+		Width:      w,
+		Height:     h,
+		Scale:      scale,
+		CellAspect: aspect,
+		Caps:       m.caps,
 	}
 }
 
@@ -95,10 +103,11 @@ func (m Model) footer(w int) string {
 // when the area is too small — never panicking.
 func (m Model) body(w, availH, scale int) string {
 	ctx := m.renderContext(w, availH, scale)
-	mw, mh := m.renderer.MinSize(ctx)
+	rdr := m.activeRenderer(ctx)
+	mw, mh := rdr.MinSize(ctx)
 	switch {
 	case w >= mw && availH >= mh:
-		return m.renderer.Render(ctx)
+		return rdr.Render(ctx)
 	case availH >= 1:
 		line := m.compactTime()
 		if lipgloss.Width(line) <= w {

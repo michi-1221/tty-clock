@@ -11,9 +11,12 @@ look at" feel of k9s / lazygit.
 ## Status
 
 - **Phase 1 (done):** configurable, themeable **digital** clock — giant block
-  digits, ASCII fallback, 7 themes, keyboard controls, JSON config.
-- **Phase 2 (planned):** analog braille renderer (`m` toggle), live reload
-  (`r`), `seg7` font, multi-color hands.
+  digits, ASCII fallback, 7 themes, keyboard controls, JSON config, window
+  scaling.
+- **Phase 2 (done):** **analog** braille dial (`m` toggle, auto-falls back to
+  digital when too small or on a non-UTF-8 terminal) and live config reload
+  (`r`).
+- **Later:** `seg7` font, multi-color hands, fsnotify auto-reload.
 
 ## Install
 
@@ -65,8 +68,8 @@ linker, and reads `dev` for local builds).
 | `t`                 | cycle theme (clean presets only)         |
 | `?`                 | toggle the help line (hidden → clock fills the screen) |
 | `q` / `ctrl+c` / `esc` | quit                                  |
-| `m`                 | mode digital ⇄ analog *(phase 2; no-op now)* |
-| `r`                 | reload config *(phase 2)*                |
+| `m`                 | switch mode: digital ⇄ analog            |
+| `r`                 | reload the config file                   |
 
 Runtime toggles (`s`, `t`) are **ephemeral** — they are *not* written back to
 the config file. Restart or a future reload returns to the file's values.
@@ -90,10 +93,11 @@ rejected. Syntax and type errors report `line:col`.
 
 | Field         | Type          | Default        | Allowed / notes                                   |
 | ------------- | ------------- | -------------- | ------------------------------------------------- |
-| `mode`        | string        | `"digital"`    | `"digital"`, `"analog"` (analog is phase 2)       |
+| `mode`        | string        | `"digital"`    | `"digital"`, `"analog"` (also toggled live with `m`) |
 | `theme`       | string        | `"tokyo-night"`| a preset name (see **Themes**)                    |
 | `customTheme` | object \| null| `null`         | partial palette override (see below)              |
 | `granularity` | string        | `"seconds"`    | `"seconds"`, `"minutes"` — update frequency       |
+| `cellAspect`  | number        | `0`            | analog dial cell height/width; `0` = auto-detect (fallback 2.0) |
 | `format`      | object        | (see below)    | display options                                   |
 
 **`format`**
@@ -106,7 +110,8 @@ rejected. Syntax and type errors report `line:col`.
 | `dateFormat`  | string | `"Mon 2006-01-02"` | Go time layout                                         |
 | `blinkColon`  | bool   | `false`            | seconds granularity only                               |
 | `showAMPM`    | bool   | `true`             | only meaningful when `hour24` is `false`               |
-| `font`        | string | `"block"`          | `"block"`, `"ascii"` (manual fallback), `"seg7"` (phase 2) |
+| `font`        | string | `"block"`          | `"block"`, `"ascii"` (manual fallback), `"seg7"` (planned) |
+| `showNumbers` | bool   | `true`             | analog: draw the hour numbers 1–12 on the face          |
 
 **`customTheme`** (all fields optional; only non-empty fields override the
 preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
@@ -116,7 +121,7 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
 | `primary`    | digits / hands                                  |
 | `accent`     | colon / seconds / AM-PM                         |
 | `secondary`  | date                                            |
-| `muted`      | clock face / ticks (phase-2 analog)             |
+| `muted`      | clock face / ticks (reserved; analog v1 is single-color) |
 | `background` | optional surface — **not painted by default** (the terminal background is respected) |
 
 ### Behavior notes
@@ -130,11 +135,26 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
   locale / `TERM=dumb` (or `font: "ascii"`) switch to the ASCII fallback font.
 - **Time source:** the system clock (`time.Now()`), rendered in the local
   timezone — no timezone code is needed. `TZ=…` is honored by Go.
-- **Window scaling:** the giant digits scale with the window in **integer
-  steps**, anchored so a **54×10** window renders the original size (×1):
-  `scale = max(1, floor(min(width/54, height/10)))` → 108×20 = ×2, 162×30 = ×3.
-  The font doubles only when *both* dimensions reach 2×; the date and AM/PM
-  labels stay normal-size text.
+- **Window scaling (digital):** the giant digits scale with the window in
+  **integer steps**, anchored so a **54×10** window renders the original size
+  (×1): `scale = max(1, floor(min(width/54, height/10)))` → 108×20 = ×2,
+  162×30 = ×3. The font doubles only when *both* dimensions reach 2×; the date
+  and AM/PM labels stay normal-size text.
+- **Analog mode:** a braille dial (face, 12 ticks, hour numbers 1–12,
+  hour/minute/second hands) drawn entirely in braille dots (2×4 per cell — the
+  finest character resolution), so the numbers are pixelated to match the dial.
+  Single-color, sized to fill the window. It **auto-falls back to digital** when
+  the area is below its minimum or the terminal isn't UTF-8 — `mode` is
+  preserved, so the dial returns when the window grows. Toggle with `m`; hide
+  the numbers with `format.showNumbers: false`. The second hand follows
+  `showSeconds`, so `s` hides/shows it (and it is absent at minute granularity).
+- **Round dial:** the cell height/width ratio is auto-detected from the
+  terminal's pixel size (`TIOCGWINSZ`) so the dial looks circular regardless of
+  font; set `cellAspect` to override (e.g. `2.4`) if your terminal doesn't
+  report pixels and the dial looks oval.
+- **Live reload:** `r` re-reads the config file; the file is the source of
+  truth, so runtime `s`/`t`/`m` toggles are discarded. A bad file is reported
+  in the footer and never stops the clock.
 
 ### Example `config.json`
 
@@ -185,7 +205,8 @@ internal/
   caps/    explicit *lipgloss.Renderer + UTF-8/NO_COLOR heuristics
   render/  Renderer interface + RenderContext  (the tea-free rendering seam)
     digital/  giant block digits · ASCII fallback · font/glyphs
-  ui/      Model + Init/Update/View · keys · tick · layout  (only package importing bubbletea)
+    analog/   braille dial · midpoint-circle face · Bresenham hands
+  ui/      Model + Init/Update/View · keys · tick · layout · activeRenderer/reload  (only package importing bubbletea)
 ```
 
 Key design points:
@@ -240,7 +261,7 @@ naming (`windows`→`win32`, `amd64`→`x64`) is what lets the launcher resolve
 
 ```bash
 go build ./... && go vet ./... && go test ./...
-go test ./internal/render/digital -update   # regenerate View golden files
+go test ./internal/render/... -update       # regenerate digital + analog golden files
 ```
 
 Interactive behavior needs a real TTY, so run `go run .` in your
@@ -254,6 +275,18 @@ terminal to confirm live updates and key handling.
   `?` (hidden = clock fills the screen).
 - **Phase 1.1** — window-proportional font scaling (integer steps, anchored at
   54×10 = ×1; `floor(min(w/54, h/10))`). Digits scale; date/AM-PM stay text.
+- **Phase 2** — analog braille dial (`internal/render/analog`: integer
+  midpoint-circle face, 12 ticks, Bresenham hands; single-color; sizes to the
+  window). `m` toggles digital ⇄ analog, with auto-fallback to digital when the
+  area is too small or the terminal isn't UTF-8 (mode preserved). `r` reloads
+  the config file (file wins over runtime toggles; tick re-armed only when
+  granularity changes; failures shown in the footer). `m`/`r` added to the help.
+- **Phase 2.1** — analog dial made visually round (cell-aspect auto-detected via
+  `TIOCGWINSZ`, parametric ellipse; `cellAspect` config override) and hour
+  numbers 1–12 drawn on the face (`format.showNumbers`, default on).
+- **Phase 2.2** — analog hour numbers drawn as braille dots (3×5 dot-matrix
+  font) so they match the dial's pixel style; the analog second hand now honors
+  `showSeconds` (hidden by `s` and at minute granularity).
 - **Release pipeline** — tag-driven GoReleaser cross-compile (6 targets, pure
   Go) → GitHub Release; npm distribution via a main `tty-clock` launcher +
   per-platform `optionalDependencies` packages staged from `dist/` by

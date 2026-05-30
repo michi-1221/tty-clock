@@ -13,14 +13,15 @@ import (
 
 // RenderContext is everything a Renderer needs. Same input → same output.
 type RenderContext struct {
-	Now    clock.TimeSnapshot
-	Theme  theme.Theme
-	Format config.FormatOptions
-	Gran   clock.Granularity
-	Width  int // available area after ui subtracts the footer
-	Height int
-	Scale  int // integer font magnification chosen by ui; 0/unset means ×1
-	Caps   caps.Capabilities
+	Now        clock.TimeSnapshot
+	Theme      theme.Theme
+	Format     config.FormatOptions
+	Gran       clock.Granularity
+	Width      int // available area after ui subtracts the footer
+	Height     int
+	Scale      int     // integer font magnification chosen by ui; 0/unset means ×1
+	CellAspect float64 // resolved cell height/width for the analog dial; always > 0
+	Caps       caps.Capabilities
 }
 
 // Renderer draws one clock mode (digital/analog).

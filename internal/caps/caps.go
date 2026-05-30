@@ -15,19 +15,32 @@ import (
 
 // Capabilities carries the rendering decisions derived from the environment.
 type Capabilities struct {
-	Renderer *lipgloss.Renderer
-	Profile  termenv.Profile
-	Unicode  bool // best-effort: can the terminal draw block/braille glyphs?
+	Renderer   *lipgloss.Renderer
+	Profile    termenv.Profile
+	Unicode    bool    // best-effort: can the terminal draw block/braille glyphs?
+	CellAspect float64 // terminal cell height/width; 0 if unknown (callers default to 2.0)
 }
 
 // Detect builds capabilities from the program's output writer.
 func Detect(w io.Writer) Capabilities {
 	r := lipgloss.NewRenderer(w)
 	return Capabilities{
-		Renderer: r,
-		Profile:  r.ColorProfile(),
-		Unicode:  detectUnicode(),
+		Renderer:   r,
+		Profile:    r.ColorProfile(),
+		Unicode:    detectUnicode(),
+		CellAspect: detectCellAspect(w),
 	}
+}
+
+// detectCellAspect measures the terminal cell height/width ratio from its pixel
+// size (TIOCGWINSZ) when the writer is a TTY that reports it; 0 otherwise. Used
+// to draw a visually round analog dial regardless of the font's cell shape.
+func detectCellAspect(w io.Writer) float64 {
+	f, ok := w.(interface{ Fd() uintptr })
+	if !ok {
+		return 0
+	}
+	return cellAspectFromFd(f.Fd())
 }
 
 // New builds capabilities around an explicit renderer (used in tests, where

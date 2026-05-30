@@ -5,10 +5,10 @@ import "github.com/charmbracelet/bubbles/key"
 // keyMap is the single source of truth for keys and their help labels.
 type keyMap struct {
 	Quit       key.Binding
-	ToggleMode key.Binding // framed for phase 2 (analog); a no-op in phase 1 (★8)
+	ToggleMode key.Binding // m: digital ⇄ analog
 	CycleTheme key.Binding
 	ToggleSecs key.Binding
-	Reload     key.Binding // framed for phase 2 (live reload)
+	Reload     key.Binding // r: re-read the config file
 	Help       key.Binding
 }
 
@@ -23,15 +23,15 @@ func defaultKeyMap() keyMap {
 	}
 }
 
-// ShortHelp / FullHelp implement help.KeyMap. Phase 1 advertises only the keys
-// that actually do something here; m/r are wired up in phase 2.
+// ShortHelp / FullHelp implement help.KeyMap — the footer is generated from
+// these, so every working key must appear here.
 func (k keyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.ToggleSecs, k.CycleTheme, k.Help, k.Quit}
+	return []key.Binding{k.ToggleSecs, k.CycleTheme, k.ToggleMode, k.Reload, k.Help, k.Quit}
 }
 
 func (k keyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.ToggleSecs, k.CycleTheme},
-		{k.Help, k.Quit},
+		{k.ToggleSecs, k.CycleTheme, k.ToggleMode},
+		{k.Reload, k.Help, k.Quit},
 	}
 }
