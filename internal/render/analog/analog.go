@@ -1,6 +1,7 @@
 package analog
 
 import (
+	"math"
 	"strconv"
 	"strings"
 
@@ -90,36 +91,98 @@ var digitFont = map[rune][]string{
 }
 
 const (
-	digitW   = 3
-	digitH   = 5
-	digitGap = 1
+	digitW    = 3
+	digitH    = 5
+	labelFrac = 0.72 // hour numbers sit at this fraction of the dial radius
 )
 
-// drawNumbers plots the hour numbers 1–12 as braille dots just inside the ticks.
+// numberSize returns the target glyph size (in dots) for the hour numbers. The
+// height grows gently with the dial — one extra dot per ~16 dots of radius above
+// the legible base digitH — then is capped so adjacent two-digit labels (10–12)
+// never collide: their combined width must fit the chord between adjacent hours
+// at the label radius, 2·labelFrac·r·sin(15°). Width tracks height at the font's
+// 3:5 aspect. Because the glyph is resized (not block-scaled), the size can land
+// between the old ×1 and ×2 steps.
+func numberSize(rx, ry int) (tw, th int) {
+	r := rx
+	if ry < r {
+		r = ry
+	}
+	chord := 2 * labelFrac * float64(r) * math.Sin(15*math.Pi/180)
+	th = digitH + r/16
+	for {
+		tw = iround(float64(th) * digitW / digitH)
+		if tw < digitW {
+			tw = digitW
+		}
+		if th <= digitH || float64(2*tw+glyphGap(tw)) <= chord {
+			break
+		}
+		th-- // too wide for the chord: shrink a step and re-fit
+	}
+	return tw, th
+}
+
+// glyphGap is the inter-digit spacing for a glyph tw dots wide, keeping the
+// font's original 1:3 gap-to-width proportion (at least one dot).
+func glyphGap(tw int) int {
+	g := iround(float64(tw) / 3)
+	if g < 1 {
+		g = 1
+	}
+	return g
+}
+
+// srcIndex maps a destination pixel to its source pixel using centered
+// nearest-neighbor sampling — sampling at the pixel center keeps symmetric
+// glyphs (0, 8, 1) symmetric after resizing, unlike floor-based sampling.
+func srcIndex(dst, dstN, srcN int) int {
+	s := iround((float64(dst)+0.5)*float64(srcN)/float64(dstN) - 0.5)
+	if s < 0 {
+		s = 0
+	}
+	if s >= srcN {
+		s = srcN - 1
+	}
+	return s
+}
+
+// drawNumbers plots the hour numbers 1–12 as braille dots just inside the ticks,
+// sized by numberSize so they grow with the dial.
 func drawNumbers(c *Canvas, cx, cy, rx, ry int) {
-	lx, ly := iround(float64(rx)*0.72), iround(float64(ry)*0.72)
+	tw, th := numberSize(rx, ry)
+	lx, ly := iround(float64(rx)*labelFrac), iround(float64(ry)*labelFrac)
 	for h := 1; h <= 12; h++ {
 		x, y := ellipsePoint(cx, cy, lx, ly, float64(h%12)*30)
-		drawDigits(c, x, y, strconv.Itoa(h))
+		drawDigits(c, x, y, strconv.Itoa(h), tw, th)
 	}
 }
 
-// drawDigits plots s centered at (cx,cy) using the dot-matrix digit font.
-func drawDigits(c *Canvas, cx, cy int, s string) {
-	total := len(s)*digitW + (len(s)-1)*digitGap
+// drawDigits plots s centered at (cx,cy), each glyph resized to tw×th dots via
+// centered nearest-neighbor sampling of the 3×5 dot-matrix font.
+func drawDigits(c *Canvas, cx, cy int, s string, tw, th int) {
+	if tw < 1 {
+		tw = digitW
+	}
+	if th < 1 {
+		th = digitH
+	}
+	gap := glyphGap(tw)
+	total := len(s)*tw + (len(s)-1)*gap
 	x0 := cx - total/2
-	y0 := cy - digitH/2
+	y0 := cy - th/2
 	for _, ch := range s {
 		if glyph, ok := digitFont[ch]; ok {
-			for row := 0; row < digitH; row++ {
-				for col := 0; col < digitW && col < len(glyph[row]); col++ {
-					if glyph[row][col] == '#' {
-						c.Set(x0+col, y0+row)
+			for dy := 0; dy < th; dy++ {
+				row := glyph[srcIndex(dy, th, digitH)]
+				for dx := 0; dx < tw; dx++ {
+					if sc := srcIndex(dx, tw, digitW); sc < len(row) && row[sc] == '#' {
+						c.Set(x0+dx, y0+dy)
 					}
 				}
 			}
 		}
-		x0 += digitW + digitGap
+		x0 += tw + gap
 	}
 }
 

@@ -147,7 +147,10 @@ preset, so partial overrides are allowed). Colors are `#rgb` or `#rrggbb`.
   Single-color, sized to fill the window. It **auto-falls back to digital** when
   the area is below its minimum or the terminal isn't UTF-8 — `mode` is
   preserved, so the dial returns when the window grows. Toggle with `m`; hide
-  the numbers with `format.showNumbers: false`. The second hand follows
+  the numbers with `format.showNumbers: false`. The hour numbers grow gently with
+  the dial: the 3×5 dot font is resized (centered nearest-neighbor, so symmetric
+  digits stay symmetric) to a height that scales with the radius and is then
+  capped so the two-digit labels (10–12) never collide. The second hand follows
   `showSeconds`, so `s` hides/shows it (and it is absent at minute granularity).
 - **Round dial:** the cell height/width ratio is auto-detected from the
   terminal's pixel size (`TIOCGWINSZ`) so the dial looks circular regardless of
@@ -303,6 +306,12 @@ terminal to confirm live updates and key handling.
   behavior); added the top-level `showHelp` option (help line visibility).
 - **Phase 2.5** — removed the `showAMPM` option and the AM/PM indicator (12-hour
   is shown without one).
+- **Phase 2.6** — analog hour numbers now grow with the dial: the 3×5 dot font
+  is resized via centered nearest-neighbor sampling (keeps symmetric digits
+  symmetric) to a height that scales gently with the radius, capped so adjacent
+  two-digit labels (10–12) never collide (chord between adjacent hours). Lands
+  between the old fixed size and a 2× block, so the numbers are legible without
+  dominating the face.
 - **Release pipeline** — tag-driven GoReleaser cross-compile (6 targets, pure
   Go) → GitHub Release; npm distribution via a main `tty-clock` launcher +
   per-platform `optionalDependencies` packages staged from `dist/` by
