@@ -24,4 +24,5 @@ node_modules/
 # Editor / OS noise
 .DS_Store
 
-.CLAUDE.md
+# Local Claude guidance — kept on disk, out of the repo
+/CLAUDE.md
