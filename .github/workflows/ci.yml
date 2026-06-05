@@ -5,6 +5,8 @@ name: ci
 on:
   push:
     branches: [main]
+    paths:
+      - 'internal/**'
   pull_request:
 
 permissions:
